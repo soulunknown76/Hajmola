@@ -277,3 +277,121 @@ td:last-child {
         font-size: 1.8rem;
     }
 }
+
+/* ================= MODAL STYLES ================= */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background: #0d0d1a;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--primary-color);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--primary-color);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Scrollbar Style */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* ================= HISTORY TABLE ================= */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    color: white;
+}
+
+.history-table th,
+.history-table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    text-align: left;
+}
+
+.history-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary-color);
+}
+
+.history-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ================= INGREDIENTS MODAL ================= */
+.ingredients-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.ingredient-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ingredient-item:last-child {
+    border-bottom: none;
+}
+
+.view-btn {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.3s;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.view-btn:hover {
+    background: var(--primary-color);
+    color: black;
+}

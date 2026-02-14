@@ -112,6 +112,100 @@ app.post("/api/login", async (req, res) => {
     });
 });
 
+/* ================= HISTORY & COMMUNITY MODELS ================= */
+
+const DeviationSchema = new mongoose.Schema({
+    userEmail: { type: String, required: true },
+    recipeId: { type: String, required: true },
+    recipeTitle: { type: String, required: true },
+    ingredients: { type: Array, required: true },
+    deviationScore: { type: Number, required: true },
+    status: { type: String, required: true },
+    date: { type: Date, default: Date.now }
+});
+const Deviation = mongoose.model('Deviation', DeviationSchema);
+
+const CommunityMixSchema = new mongoose.Schema({
+    author: { type: String, required: true },
+    recipeTitle: { type: String, required: true },
+    ingredients: { type: Array, required: true },
+    deviationScore: { type: Number, required: true },
+    status: { type: String, required: true },
+    likes: { type: Number, default: 0 },
+    dislikes: { type: Number, default: 0 },
+    votedBy: { type: [String], default: [] }, // Track users who voted
+    date: { type: Date, default: Date.now }
+});
+const CommunityMix = mongoose.model('CommunityMix', CommunityMixSchema);
+
+/* ================= HISTORY & COMMUNITY ROUTES ================= */
+
+app.post('/api/save-deviation', async (req, res) => {
+    try {
+        const newDeviation = new Deviation(req.body);
+        await newDeviation.save();
+        res.status(201).json({ message: 'Deviation saved to history' });
+    } catch (error) {
+        console.error("Error saving deviation:", error);
+        res.status(500).json({ message: 'Failed to save deviation' });
+    }
+});
+
+app.get('/api/history/:email', async (req, res) => {
+    try {
+        const history = await Deviation.find({ userEmail: req.params.email }).sort({ date: -1 });
+        res.json(history);
+    } catch (error) {
+        console.error("Error fetching history:", error);
+        res.status(500).json({ message: 'Failed to fetch history' });
+    }
+});
+
+app.post('/api/community/publish', async (req, res) => {
+    try {
+        const newMix = new CommunityMix(req.body);
+        await newMix.save();
+        res.status(201).json({ message: 'Published to Community Hub' });
+    } catch (error) {
+        console.error("Error publishing mix:", error);
+        res.status(500).json({ message: 'Failed to publish mix' });
+    }
+});
+
+app.get('/api/community/feed', async (req, res) => {
+    try {
+        // Sort by likes (descending), then date
+        const feed = await CommunityMix.find().sort({ likes: -1, date: -1 }).limit(50);
+        res.json(feed);
+    } catch (error) {
+        console.error("Error fetching feed:", error);
+        res.status(500).json({ message: 'Failed to fetch community feed' });
+    }
+});
+
+app.post('/api/community/vote', async (req, res) => {
+    const { id, type, userEmail } = req.body; // Expect userEmail in body
+    try {
+        const mix = await CommunityMix.findById(id);
+        if (!mix) return res.status(404).json({ message: 'Mix not found' });
+
+        if (mix.votedBy.includes(userEmail)) {
+            return res.status(400).json({ message: 'You have already voted on this mix.' });
+        }
+
+        if (type === 'like') mix.likes += 1;
+        if (type === 'dislike') mix.dislikes += 1;
+
+        mix.votedBy.push(userEmail);
+        await mix.save();
+
+        res.json({ message: 'Vote recorded', likes: mix.likes, dislikes: mix.dislikes });
+    } catch (error) {
+        console.error("Error voting:", error);
+        res.status(500).json({ message: 'Failed to vote' });
+    }
+});
+
 /* ================= START SERVER ================= */
 
 app.listen(PORT, () => {

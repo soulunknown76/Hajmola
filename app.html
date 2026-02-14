@@ -24,10 +24,23 @@
                 CULINARY DATA</p>
         </div>
         <div class="nav-links" style="display: flex; align-items: center; gap: 15px;">
+            <a href="community.html" class="btn btn-sm" style="text-decoration: none;">Community Hub</a>
+            <button onclick="showHistory()" class="btn btn-sm">History</button>
             <span id="userDisplay" style="font-size: 0.9rem; color: var(--primary-color);"></span>
             <button onclick="logout()" class="btn btn-sm btn-secondary">Logout</button>
         </div>
     </header>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal" style="display: none;">
+        <div class="modal-content glass-card">
+            <span class="close-btn" onclick="closeHistory()">&times;</span>
+            <h2>Deviation History</h2>
+            <div id="historyList" style="max-height: 400px; overflow-y: auto;">
+                <!-- History Items -->
+            </div>
+        </div>
+    </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem('user'));
@@ -71,9 +84,10 @@
         </div>
 
         <div style="text-align: right; margin-top: 20px;">
-            <button class="btn btn-secondary" onclick="alert('Feature coming soon: Save to Profile')">Save to
-                Profile</button>
-            <button onclick="calculateScore()" class="btn" style="margin-left: 10px;">Calculate Deviation</button>
+            <button class="btn btn-secondary" onclick="saveDeviation()">Save to History</button>
+            <button class="btn" onclick="publishToCommunity()" style="margin-left: 10px;">Publish to Community</button>
+            <button onclick="calculateScore()" class="btn"
+                style="margin-left: 10px; border-color: white; color: white;">Calculate Deviation</button>
         </div>
 
         <p id="scoreResult"></p>
