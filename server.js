@@ -4,118 +4,116 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = 6969;
+
 app.use(express.json());
-// Middleware
 app.use(cors());
+app.use(express.static(__dirname));
 
-app.use(express.static(path.join(__dirname)));
+/* ================= MONGODB ================= */
 
-// MongoDB Connection
 const MONGO_URI = 'mongodb+srv://vikrant:4Uz2zM4LjmeeusFT@cluster0.9y79s8v.mongodb.net/hajmolaDB?retryWrites=true&w=majority';
 
-console.log('Attempting to connect to MongoDB...');
 mongoose.connect(MONGO_URI)
-    .then(() => console.log('MongoDB Connected Successfully to hajmolaDB'))
-    .catch(err => {
-        console.error('MongoDB Connection Error:', err);
-    });
+    .then(() => console.log("MongoDB Connected"))
+    .catch(err => console.error("Mongo Error:", err));
 
-mongoose.connection.on('connected', () => {
-    console.log('Mongoose connected to DB Cluster');
-});
+/* ================= USER MODEL ================= */
 
-mongoose.connection.on('error', (err) => {
-    console.error('Mongoose connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-    console.log('Mongoose disconnected');
-});
-
-// User Schema
 const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    username: String,
+    email: { type: String, unique: true },
+    password: String
 });
 
-// JSON Conversion Method (removes password from output)
-UserSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString();
-        delete returnedObject._id;
-        delete returnedObject.__v;
-        delete returnedObject.password;
+const User = mongoose.model("User", UserSchema);
+
+/* ================= COSYLAB CONFIG ================= */
+
+const COSY_BASE = "http://cosylab.iiitd.edu.in:6969";
+const TOKEN = "N2Xl3Kum62fzUwgARHzuzkUowV22ki0RJ1EM-2dpuDaBGUfw";
+
+/* ================= PROXY ROUTES ================= */
+
+app.get("/api/proxy/recipes", async (req, res) => {
+    try {
+        const response = await fetch(
+            `${COSY_BASE}/recipe2-api/recipe/recipesinfo?page=1&limit=50`,
+            {
+                headers: { Authorization: `Bearer ${TOKEN}` }
+            }
+        );
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (err) {
+        console.error("Proxy Error Recipes:", err);
+        res.status(500).json({ message: "Proxy failed" });
     }
 });
 
-const User = mongoose.model('User', UserSchema);
+app.get("/api/proxy/recipe/:id", async (req, res) => {
+    try {
+        const response = await fetch(
+            `${COSY_BASE}/recipe2-api/search-recipe/${req.params.id}`,
+            {
+                headers: { Authorization: `Bearer ${TOKEN}` }
+            }
+        );
 
-// Routes
+        const data = await response.json();
+        res.json(data);
 
-// Serve HTML pages
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    } catch (err) {
+        console.error("Proxy Error Recipe:", err);
+        res.status(500).json({ message: "Proxy failed" });
+    }
 });
 
-app.get('/app', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app.html'));
-});
+/* ================= AUTH ROUTES ================= */
 
-// Register Endpoint
-app.post('/api/register', async (req, res) => {
+app.post("/api/register", async (req, res) => {
     const { fullname, email, password } = req.body;
 
-    if (!fullname || !email || !password) {
-        return res.status(400).json({ message: 'All fields are required' });
-    }
+    if (!fullname || !email || !password)
+        return res.status(400).json({ message: "All fields required" });
 
     try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+        const existing = await User.findOne({ email });
+        if (existing)
+            return res.status(400).json({ message: "User exists" });
 
-        const newUser = new User({ username: fullname, email, password });
+        const newUser = new User({
+            username: fullname,
+            email,
+            password
+        });
+
         await newUser.save();
+        res.json({ message: "Registered successfully" });
 
-        res.status(201).json({ message: 'Registration successful' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error during registration' });
+    } catch (err) {
+        res.status(500).json({ message: "Registration error" });
     }
 });
 
-// Login Endpoint
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
-    }
+    const user = await User.findOne({ email });
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials' });
-        }
+    if (!user || user.password !== password)
+        return res.status(400).json({ message: "Invalid credentials" });
 
-        // In a real app, you should hash passwords and compare hashes
-        if (user.password !== password) {
-            return res.status(400).json({ message: 'Invalid credentials' });
-        }
-
-        res.json({
-            message: 'Login successful',
-            user: { username: user.username, email: user.email }
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error during login' });
-    }
+    res.json({
+        message: "Login successful",
+        user: { username: user.username, email: user.email }
+    });
 });
 
+/* ================= START SERVER ================= */
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Running on http://localhost:${PORT}`);
 });
