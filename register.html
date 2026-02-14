@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - EditMyDish</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container auth-container">
+        <h1>Join the Future</h1>
+        <p style="margin-bottom: 30px; color: var(--text-color); opacity: 0.8;">Create your culinary identity</p>
+
+        <form>
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input type="text" id="fullname" placeholder="Agent Name" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="neural-link@example.com" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Secure Access Key">
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Register Identity</button>
+        </form>
+
+        <p id="message" style="margin-top: 15px; display: none;"></p>
+
+        <p style="margin-top: 20px; font-size: 0.9rem;">
+            Already have an ID? <a href="login.html">Login Here</a>
+        </p>
+        <p style="margin-top: 10px; font-size: 0.8rem;">
+            <a href="index.html" style="color: rgba(255,255,255,0.5);">← Back to Home</a>
+        </p>
+    </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('message');
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullname, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.style.color = '#00ff00';
+                    messageEl.textContent = 'Registration Successful! Redirecting...';
+                    messageEl.style.display = 'block';
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                } else {
+                    messageEl.style.color = '#ff0000';
+                    messageEl.textContent = data.message;
+                    messageEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageEl.style.color = '#ff0000';
+                messageEl.textContent = 'Network error. Please try again.';
+                messageEl.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+
+</html>
